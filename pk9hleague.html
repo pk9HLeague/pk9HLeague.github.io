@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>培侨G9联赛 - 射手榜</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{background:#f4f5f7;padding:20px;max-width:1100px;margin:0 auto}
+.header{background:linear-gradient(135deg,#021b33,#023866);color:white;text-align:center;padding:28px 20px;border-radius:14px;margin-bottom:24px;box-shadow:0 6px 16px rgba(0,0,0,0.1)}
+.header h1{font-size:28px;margin-bottom:6px}
+.header p{font-size:15px;opacity:.9}
+.card{background:white;border-radius:14px;padding:22px;margin-bottom:22px;box-shadow:0 2px 10px rgba(0,0,0,0.06)}
+.card h2{font-size:19px;color:#023866;margin-bottom:16px;border-left:4px solid #e63946;padding-left:10px}
+.form{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+input,select,button{padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:14px}
+button{background:#02498a;color:white;border:none;cursor:pointer}
+button.danger{background:#e63946}
+button:hover{opacity:.9}
+.table-box{overflow-x:auto;border-radius:10px}
+table{width:100%;border-collapse:collapse}
+th{background:#022b4d;color:white;padding:14px;text-align:left;font-weight:500}
+td{padding:14px;border-bottom:1px solid #eee}
+tr:nth-child(even){background:#fafbfc}
+tr:hover{background:#edf2fb}
+.pos{display:inline-block;padding:3px 8px;border-radius:6px;color:white;font-size:12px;font-weight:bold}
+.pos-GK{background:#6366f1}
+.pos-CB{background:#8b5cf6}
+.pos-LB{background:#a78bfa}
+.pos-RB{background:#a78bfa}
+.pos-CDM{background:#3b82f6}
+.pos-CM{background:#2563eb}
+.pos-CAM{background:#0ea5e9}
+.pos-LW{background:#f97316}
+.pos-RW{background:#f97316}
+.pos-ST{background:#e63946}
+.pos-CF{background:#ef4444}
+.rank{font-weight:bold;font-size:16px}
+.rank.top{color:#f59e0b;font-size:18px}
+.goal{font-weight:bold;color:#022b4d;font-size:16px}
+.empty{text-align:center;padding:30px;color:#999}
+</style>
+</head>
+<body>
+
+<div class="header">
+<h1>培侨G9足球联赛 · 射手榜</h1>
+<p>Pei Kiu G9 League Top Scorers</p >
+</div>
+
+<div class="card">
+<h2>添加球员</h2>
+<div class="form">
+<input id="name" placeholder="球员姓名">
+<select id="pos">
+<option value="ST">ST 中锋</option>
+<option value="CF">CF 影锋</option>
+<option value="LW">LW 左边锋</option>
+<option value="RW">RW 右边锋</option>
+<option value="CAM">CAM 前腰</option>
+<option value="CM">CM 中前卫</option>
+<option value="CDM">CDM 后腰</option>
+<option value="LB">LB 左后卫</option>
+<option value="RB">RB 右后卫</option>
+<option value="CB">CB 中后卫</option>
+<option value="GK">GK 门将</option>
+</select>
+<input id="cls" placeholder="班级/球队">
+<button onclick="addPlayer()">添加</button>
+</div>
+</div>
+
+<div class="card">
+<h2>录入比赛进球</h2>
+<div class="form">
+<input id="match" placeholder="比赛：例如 G9-1 vs G9-3">
+<select id="player"></select>
+<input id="goal" type="number" min="1" value="1" placeholder="进球数">
+<button onclick="addGoal()">确认录入</button>
+</div>
+</div>
+
+<div class="card">
+<h2>射手排名</h2>
+<div class="table-box">
+<table id="scorerTable">
+<thead>
+<tr>
+<th>排名</th>
+<th>球员</th>
+<th>班级</th>
+<th>位置</th>
+<th>进球</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody>
+<tr><td colspan="6" class="empty">请先添加球员</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div class="card">
+<h2>比赛记录</h2>
+<div class="table-box">
+<table id="logTable">
+<thead>
+<tr>
+<th>比赛</th>
+<th>球员</th>
+<th>进球</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody>
+<tr><td colspan="4" class="empty">暂无记录</td></tr>
+</tbody>
+</table>
+</div>
+
+<script>
+const KEY = "PEIQIU_G9_DATA";
+let data = JSON.parse(localStorage.getItem(KEY)) || {
+  players: [],
+  logs: []
+};
+
+function save() {
+  localStorage.setItem(KEY, JSON.stringify(data));
+  render();
+}
+
+function renderPlayerList() {
+  const sel = document.getElementById("player");
+  sel.innerHTML = data.players.map(p =>
+    `<option value="${p.name}">${p.name}</option>`
+  ).join("");
+}
+
+function addPlayer() {
+  const name = document.getElementById("name").value.trim();
+  const pos = document.getElementById("pos").value;
+  const cls = document.getElementById("cls").value.trim();
+  if (!name || !cls) return alert("请填写姓名和班级");
+  if (data.players.some(x => x.name === name)) return alert("球员已存在");
+  data.players.push({ name, pos, cls });
+  document.getElementById("name").value = "";
+  document.getElementById("cls").value = "";
+  save();
+}
+
+// 删除球员
+function delPlayer(name) {
+  if (!confirm("确定删除该球员？同时会删除其所有进球记录！")) return;
+  data.players = data.players.filter(p => p.name !== name);
+  data.logs = data.logs.filter(l => l.name !== name);
+  save();
+}
+
+function addGoal() {
+  const match = document.getElementById("match").value.trim();
+  const name = document.getElementById("player").value;
+  const g = parseInt(document.getElementById("goal").value);
+  if (!match || !name || isNaN(g) || g < 1) return alert("填写完整");
+  data.logs.push({ match, name, g });
+  document.getElementById("match").value = "";
+  document.getElementById("goal").value = 1;
+  save();
+}
+
+function delLog(i) {
+  if (!confirm("确定删除？")) return;
+  data.logs.splice(i, 1);
+  save();
+}
+
+function renderScorers() {
+  const tab = document.getElementById("scorerTable").querySelector("tbody");
+  if (data.players.length === 0) {
+    tab.innerHTML = `<tr><td colspan="6" class="empty">请先添加球员</td></tr>`;
+    return;
+  }
+
+  const list = data.players.map(p => {
+    const total = data.logs.filter(x => x.name === p.name)
+      .reduce((s, i) => s + i.g, 0);
+    return { ...p, total };
+  }).sort((a, b) => b.total - a.total);
+
+  tab.innerHTML = list.map((p, i) => `
+  <tr>
+    <td class="rank ${i === 0 ? 'top' : ''}">${i + 1}</td>
+    <td>${p.name}</td>
+    <td>${p.cls}</td>
+    <td><span class="pos pos-${p.pos}">${p.pos}</span></td>
+    <td class="goal">${p.total}</td>
+    <td><button class="danger" onclick="delPlayer('${p.name}')">删除球员</button></td>
+  </tr>`).join("");
+}
+
+function renderLogs() {
+  const tab = document.getElementById("logTable").querySelector("tbody");
+  if (data.logs.length === 0) {
+    tab.innerHTML = `<tr><td colspan="4" class="empty">暂无记录</td></tr>`;
+    return;
+  }
+  tab.innerHTML = data.logs.map((l, i) => `
+  <tr>
+    <td>${l.match}</td>
+    <td>${l.name}</td>
+    <td>${l.g}</td>
+    <td><button class="danger" onclick="delLog(${i})">删除</button></td>
+  </tr>`).join("");
+}
+
+function render() {
+  renderPlayerList();
+  renderScorers();
+  renderLogs();
+}
+
+render();
+</script>
+</body>
+</html>
