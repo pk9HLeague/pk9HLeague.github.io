@@ -39,7 +39,7 @@ tr:hover{background:#edf2fb}
 .rank{font-weight:bold;font-size:16px}
 .rank.top{color:#f59e0b;font-size:18px}
 .goal{font-weight:bold;color:#022b4d;font-size:16px}
-.miss-chance{font-weight:bold;color:#d97706;font-size:16px}
+.miss{font-weight:bold;color:#d97706;font-size:16px}
 .empty{text-align:center;padding:30px;color:#999}
 </style>
 </head>
@@ -51,49 +51,7 @@ tr:hover{background:#edf2fb}
 </div>
 
 <div class="card">
-<h2>添加球员</h2>
-<div class="form">
-<input id="name" placeholder="球员姓名">
-<select id="pos">
-<option value="ST">ST 中锋</option>
-<option value="CF">CF 影锋</option>
-<option value="LW">LW 左边锋</option>
-<option value="RW">RW 右边锋</option>
-<option value="CAM">CAM 前腰</option>
-<option value="CM">CM 中前卫</option>
-<option value="CDM">CDM 后腰</option>
-<option value="LB">LB 左后卫</option>
-<option value="RB">RB 右后卫</option>
-<option value="CB">CB 中后卫</option>
-<option value="GK">GK 门将</option>
-</select>
-<input id="cls" placeholder="班级/球队">
-<button onclick="addPlayer()">添加</button>
-</div>
-</div>
-
-<div class="card">
-<h2>录入比赛进球</h2>
-<div class="form">
-<input id="match" placeholder="比赛：例如 G9-1 vs G9-3">
-<select id="player"></select>
-<input id="goal" type="number" min="1" value="1" placeholder="进球数">
-<button onclick="addGoal()">确认录入</button>
-</div>
-</div>
-
-<div class="card">
-<h2>录入错失绝佳机会</h2>
-<div class="form">
-<input id="missMatch" placeholder="比赛：例如 G9-1 vs G9-3">
-<select id="missPlayer"></select>
-<input id="missCount" type="number" min="1" value="1" placeholder="错失次数">
-<button class="miss" onclick="addMiss()">确认录入</button>
-</div>
-</div>
-
-<div class="card">
-<h2> 射手排名</h2>
+<h2>射手排名</h2>
 <div class="table-box">
 <table id="scorerTable">
 <thead>
@@ -103,18 +61,15 @@ tr:hover{background:#edf2fb}
 <th>班级</th>
 <th>位置</th>
 <th>进球</th>
-<th>操作</th>
 </tr>
 </thead>
-<tbody>
-<tr><td colspan="6" class="empty">加载中...</td></tr>
-</tbody>
+<tbody></tbody>
 </table>
 </div>
 </div>
 
 <div class="card">
-<h2> 错失绝佳机会榜</h2>
+<h2>错失绝佳机会榜</h2>
 <div class="table-box">
 <table id="missTable">
 <thead>
@@ -124,129 +79,60 @@ tr:hover{background:#edf2fb}
 <th>班级</th>
 <th>位置</th>
 <th>错失</th>
-<th>操作</th>
 </tr>
 </thead>
-<tbody>
-<tr><td colspan="6" class="empty">加载中...</td></tr>
-</tbody>
-</table>
-</div>
-</div>
-
-<div class="card">
-<h2>比赛记录</h2>
-<div class="table-box">
-<table id="logTable">
-<thead>
-<tr>
-<th>比赛</th>
-<th>球员</th>
-<th>进球</th>
-<th>操作</th>
-</tr>
-</thead>
-<tbody>
-<tr><td colspan="4" class="empty">暂无记录</td></tr>
-</tbody>
+<tbody></tbody>
 </table>
 </div>
 </div>
 
 <script>
-const API = "https://api.jsonbin.io/v3/b/65f123456789012345678901";
-const HEAD = { "X-Master-Key": "$2b$10$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" };
+// 所有数据 直接写死在代码里 → 别人打开就能看见！
+let data = {
+  "players": [
+    {"name":"cl","pos":"GK","cls":"9H4"},
+    {"name":"lkw","pos":"RB","cls":"9H8"},
+    {"name":"cgf","pos":"RW","cls":"9H2"},
+    {"name":"cjq","pos":"CF","cls":"9H8"},
+    {"name":"fyh","pos":"CB","cls":"9H8"},
+    {"name":"zzh","pos":"CAM","cls":"9H5"},
+    {"name":"lhk","pos":"CAM","cls":"9H3"},
+    {"name":"yjt","pos":"CAM","cls":"9H4"},
+    {"name":"yzr","pos":"ST","cls":"9H6"},
+    {"name":"xyh","pos":"ST","cls":"9H5"},
+    {"name":"phx","pos":"CF","cls":"9H5"},
+    {"name":"jbh","pos":"LB","cls":"9H7"},
+    {"name":"hyj","pos":"LB","cls":"9H7"},
+    {"name":"hpx","pos":"CM","cls":"传奇球员"},
+    {"name":"lbr","pos":"CB","cls":"传奇球员"},
+    {"name":"jzq","pos":"GK","cls":"传奇球员"},
+    {"name":"zrz","pos":"CDM","cls":"9H7"},
+    {"name":"wkw","pos":"CB","cls":"9H3"},
+    {"name":"cmh","pos":"LB","cls":"9H7"},
+    {"name":"lsb","pos":"ST","cls":"9H8"},
+    {"name":"lbh","pos":"ST","cls":"9H4"}
+  ],
+  "logs": [
+    {"match":"4.22","name":"lkw","g":1},
+    {"match":"4.22","name":"fyh","g":1},
+    {"match":"4.22","name":"zzh","g":1},
+    {"match":"4.22","name":"xyh","g":1},
+    {"match":"4.22","name":"phx","g":2},
+    {"match":"4.22","name":"cmh","g":2},
+    {"match":"4.22","name":"lsb","g":1},
+    {"match":"4.22","name":"lbh","g":1}
+  ],
+  // 错失绝佳机会记录（在这里添加）
+  "missLogs": [
+    {"name":"cjq","cnt":2},
+    {"name":"yzr","cnt":1},
+    {"name":"xyh","cnt":1}
+  ]
+};
 
-let data = { players: [], logs: [], missLogs: [] };
-
-async function load() {
-  try {
-    let res = await fetch(API);
-    let json = await res.json();
-    data = json.record || { players: [], logs: [], missLogs: [] };
-    render();
-  } catch(e) {
-    render();
-  }
-}
-
-async function save() {
-  await fetch(API, {
-    method: "PUT",
-    headers: { ...HEAD, "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
-  render();
-}
-
-function renderPlayerList() {
-  const sel = document.getElementById("player");
-  const selMiss = document.getElementById("missPlayer");
-  const opts = data.players.map(p => `<option value="${p.name}">${p.name}</option>`).join("");
-  sel.innerHTML = opts || "<option value=''>暂无球员</option>";
-  selMiss.innerHTML = opts || "<option value=''>暂无球员</option>";
-}
-
-async function addPlayer() {
-  const name = document.getElementById("name").value.trim();
-  const pos = document.getElementById("pos").value;
-  const cls = document.getElementById("cls").value.trim();
-  if (!name || !cls) return alert("请填写姓名和班级");
-  if (data.players.some(x => x.name === name)) return alert("球员已存在");
-  
-  data.players.push({ name, pos, cls });
-  document.getElementById("name").value = "";
-  document.getElementById("cls").value = "";
-  await save();
-  alert("添加成功！全网可见");
-}
-
-async function delPlayer(name) {
-  if (!confirm("删除后全网同步消失，确定？")) return;
-  data.players = data.players.filter(p => p.name !== name);
-  data.logs = data.logs.filter(l => l.name !== name);
-  data.missLogs = data.missLogs.filter(l => l.name !== name);
-  await save();
-}
-
-async function addGoal() {
-  const match = document.getElementById("match").value.trim();
-  const name = document.getElementById("player").value;
-  const g = parseInt(document.getElementById("goal").value);
-  if (!name || !match || isNaN(g) || g < 1) return alert("填写完整");
-  
-  data.logs.push({ match, name, g });
-  document.getElementById("match").value = "";
-  document.getElementById("goal").value = 1;
-  await save();
-  alert("进球已同步全网");
-}
-
-async function addMiss() {
-  const match = document.getElementById("missMatch").value.trim();
-  const name = document.getElementById("missPlayer").value;
-  const cnt = parseInt(document.getElementById("missCount").value);
-  if (!name || !match || isNaN(cnt) || cnt < 1) return alert("填写完整");
-  
-  data.missLogs.push({ match, name, cnt });
-  document.getElementById("missMatch").value = "";
-  document.getElementById("missCount").value = 1;
-  await save();
-  alert("错失记录已同步全网");
-}
-
-async function delLog(i) {
-  if (!confirm("确定删除？")) return;
-  data.logs.splice(i, 1);
-  await save();
-}
-
+// 渲染射手榜
 function renderScorers() {
   const tab = document.getElementById("scorerTable").querySelector("tbody");
-  if (data.players.length === 0) {
-    tab.innerHTML = `<tr><td colspan="6" class="empty">请先添加球员</td></tr>`;
-    return;
-  }
   const list = data.players.map(p => {
     const total = data.logs.filter(x => x.name === p.name).reduce((s, i) => s + i.g, 0);
     return { ...p, total };
@@ -259,16 +145,12 @@ function renderScorers() {
     <td>${p.cls}</td>
     <td><span class="pos pos-${p.pos}">${p.pos}</span></td>
     <td class="goal">${p.total}</td>
-    <td><button class="danger" onclick="delPlayer('${p.name}')">删除球员</button></td>
   </tr>`).join("");
 }
 
+// 渲染错失绝佳机会榜
 function renderMiss() {
   const tab = document.getElementById("missTable").querySelector("tbody");
-  if (data.players.length === 0) {
-    tab.innerHTML = `<tr><td colspan="6" class="empty">请先添加球员</td></tr>`;
-    return;
-  }
   const list = data.players.map(p => {
     const total = data.missLogs.filter(x => x.name === p.name).reduce((s, i) => s + i.cnt, 0);
     return { ...p, total };
@@ -280,34 +162,13 @@ function renderMiss() {
     <td>${p.name}</td>
     <td>${p.cls}</td>
     <td><span class="pos pos-${p.pos}">${p.pos}</span></td>
-    <td class="miss-chance">${p.total}</td>
-    <td><button class="danger" onclick="delPlayer('${p.name}')">删除球员</button></td>
+    <td class="miss">${p.total}</td>
   </tr>`).join("");
 }
 
-function renderLogs() {
-  const tab = document.getElementById("logTable").querySelector("tbody");
-  if (data.logs.length === 0) {
-    tab.innerHTML = `<tr><td colspan="4" class="empty">暂无记录</td></tr>`;
-    return;
-  }
-  tab.innerHTML = data.logs.map((l, i) => `
-  <tr>
-    <td>${l.match}</td>
-    <td>${l.name}</td>
-    <td>${l.g}</td>
-    <td><button class="danger" onclick="delLog(${i})">删除</button></td>
-  </tr>`).join("");
-}
-
-function render() {
-  renderPlayerList();
-  renderScorers();
-  renderMiss();
-  renderLogs();
-}
-
-load();
+// 启动
+renderScorers();
+renderMiss();
 </script>
 </body>
 </html>
